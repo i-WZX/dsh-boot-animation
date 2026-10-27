@@ -321,7 +321,7 @@ function cardForm(props) {
  */
 function BootAnimationCard(props) {
   const React = props.runtime
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(true)
   const [pool, setPool] = React.useState(null)
   const [lengths, setLengths] = React.useState({})
   const [failure, setFailure] = React.useState(null)
