@@ -5,6 +5,11 @@
 // 2. 注册 /plugins/dsh-boot-animation/clips.json 和 /plugins/dsh-boot-animation/clip/* 流式路由 (支持 Range 206)。
 // 3. 支持 DSH 桌面版与 Web 版，25 秒完播限制，完播后平滑过渡至 DSH 页面。
 
+import { appendFileSync } from 'node:fs';
+try {
+  appendFileSync('C:/Users/Zhongxin.Wang/.dsh/boot-debug.log', `${new Date().toISOString()} entry.js loaded\n`);
+} catch (e) {}
+
 import { readdir, stat } from 'node:fs/promises';
 import { createReadStream, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -62,6 +67,9 @@ function contentType(filePath) {
 }
 
 export function apply(ctx, config = {}) {
+  try {
+    appendFileSync('C:/Users/Zhongxin.Wang/.dsh/boot-debug.log', `${new Date().toISOString()} apply() called\n`);
+  } catch (e) {}
   const assetDir = resolve(fileURLToPath(new URL('.', import.meta.url)), 'assets/videos');
   const server = ctx.webserver || ctx.server;
 
@@ -171,6 +179,9 @@ export function apply(ctx, config = {}) {
 
   // 2. 注入到 DSH HTML <head>
   ctx.on?.('webserver/index-inject', (table) => {
+    try {
+      appendFileSync('C:/Users/Zhongxin.Wang/.dsh/boot-debug.log', `${new Date().toISOString()} webserver/index-inject called\n`);
+    } catch (e) {}
     const settings = currentSettings();
     if (!settings.enabled) return;
 
