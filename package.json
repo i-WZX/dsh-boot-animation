@@ -1,0 +1,34 @@
+{
+  "name": "dsh-boot-animation",
+  "version": "1.0.0",
+  "description": "DeepSeek Harness 启动全屏视频动画插件（纯净全屏无遮挡、25秒时长限制、完播平滑转场）",
+  "type": "module",
+  "main": "./entry.js",
+  "exports": {
+    ".": "./entry.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "assets",
+    "src",
+    "cordis.patch.yml",
+    "entry.js",
+    "package.json",
+    "README.md"
+  ],
+  "keywords": [
+    "deepseek",
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "boot-animation"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "author": "",
+  "license": "MIT"
+}

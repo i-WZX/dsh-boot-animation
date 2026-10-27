@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepSeek - 智能助手 (DSH 本地模拟环境)</title>
+
+  <!-- 模拟 DSH 服务端通过 webserver/index-inject 在 <head> 注入的全局配置与启动脚本 -->
+  <script>
+    globalThis.__DSH_BOOT_ANIM_CFG__ = {
+      base: '/plugins/dsh-boot-animation',
+      manifest: '/plugins/dsh-boot-animation/clips.json',
+      // 'end': 完整播放视频至结束；超过 25 秒在第 25 秒平滑截断淡出
+      enterMode: 'end',
+      fadeMs: 1500,
+      sound: true,
+      clickToEnter: false,
+      showHint: true,
+      maxDurationMs: 25000, // 导入/播放视频时间更新为 25 秒上限限制
+      holdMs: 30000        // 超时兜底放宽至 30 秒 (覆盖 25 秒播放 + 缓冲)
+    };
+  </script>
+  <!-- 注入重写后的 25 秒上限限制启动动画脚本 -->
+  <script src="/src/boot-screen.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background-color: #12141a;
+      color: #e5e7eb;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+    }
+
+    /* 模拟 DSH 侧边栏 */
+    .sidebar {
+      width: 260px;
+      background: #181b24;
+      border-right: 1px solid #282d3c;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #1d68f2, #00f2fe);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    .new-chat-btn {
+      margin: 16px 0;
+      background: #1d68f2;
+      border: none;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+    .new-chat-btn:hover {
+      background: #1555c9;
+    }
+    .menu-list {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .menu-item {
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: #9ca3af;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .menu-item.active, .menu-item:hover {
+      background: #232836;
+      color: #fff;
+    }
+
+    /* 主聊天区 */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #12141a;
+      position: relative;
+    }
+    .top-bar {
+      height: 56px;
+      border-bottom: 1px solid #242938;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+    .model-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1e2230;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4facfe;
+      border: 1px solid #2d354a;
+    }
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      max-width: 860px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .greeting {
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .sub-greeting {
+      font-size: 14px;
+      color: #9ca3af;
+      margin-bottom: 36px;
+    }
+    .input-box-wrapper {
+      width: 100%;
+      background: #1c202d;
+      border: 1px solid #2f364a;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .input-box {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 15px;
+      resize: none;
+      outline: none;
+      height: 60px;
+    }
+    .input-tools {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      border-top: 1px solid #282f42;
+      padding-top: 10px;
+    }
+    .tool-pills {
+      display: flex;
+      gap: 8px;
+    }
+    .tool-pill {
+      background: #252b3d;
+      color: #4facfe;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .send-btn {
+      background: #1d68f2;
+      border: none;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    /* 模拟的原生 DSH 内核启动指示器 (boot-screen.js 会监听这个节点的 --dsh-boot-arc 属性) */
+    #dsh-kernel-mock {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 模拟 DSH 客户端界面 -->
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">🐋</div>
+      <span>DeepSeek Harness</span>
+    </div>
+    <button class="new-chat-btn">+ 开启新会话</button>
+    <div class="menu-list">
+      <div class="menu-item active">💬 对话工作台</div>
+      <div class="menu-item">🤖 模型管理 (DeepSeek-R1)</div>
+      <div class="menu-item">🧩 插件管理</div>
+      <div class="menu-item">⚙️ 系统设置</div>
+    </div>
+    <div style="font-size: 11px; color: #6b7280; padding: 10px 12px;">
+      状态: 内核就绪 (25秒限制生效)
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="top-bar">
+      <div class="model-selector">
+        <span>⚡ DeepSeek-V3 / R1 (Reasoning Engine)</span>
+      </div>
+      <div style="font-size: 13px; color: #9ca3af;">
+        DSH Boot Animation (Max 25s Limit)
+      </div>
+    </div>
+
+    <div class="chat-container">
+      <div class="greeting">今天有什么我可以协助你的？</div>
+      <div class="sub-greeting">启动视频动画已配置为 25 秒上限播放，支持平滑过渡转场</div>
+
+      <div class="input-box-wrapper">
+        <textarea class="input-box" placeholder="给 DeepSeek 发送消息或提问..."></textarea>
+        <div class="input-tools">
+          <div class="tool-pills">
+            <span class="tool-pill">🔍 深度思考 (R1)</span>
+            <span class="tool-pill">🌐 联网检索</span>
+          </div>
+          <button class="send-btn">发送</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模拟的 DSH 原生启动节点，实时驱动 --dsh-boot-arc 递增 -->
+  <div id="dsh-kernel-mock" data-dsh-boot style="--dsh-boot-arc: 72deg;"></div>
+
+  <script>
+    // 模拟 DSH 内核启动时的插件加载进度 (从 72deg 增加到 288deg)
+    (function simulateDshKernelProgress() {
+      var node = document.getElementById('dsh-kernel-mock');
+      var startDeg = 72;
+      var targetDeg = 288;
+      var current = startDeg;
+      
+      var stepTimer = setInterval(function () {
+        current += 7;
+        if (current >= targetDeg) {
+          current = targetDeg;
+          clearInterval(stepTimer);
+          node.style.setProperty('--dsh-boot-arc', current + 'deg');
+          if (globalThis.__DSH_BOOT_ANIM__ && typeof globalThis.__DSH_BOOT_ANIM__.clientReady === 'function') {
+            globalThis.__DSH_BOOT_ANIM__.clientReady();
+          }
+        } else {
+          node.style.setProperty('--dsh-boot-arc', current + 'deg');
+        }
+      }, 90);
+    })();
+  </script>
+</body>
+</html>
