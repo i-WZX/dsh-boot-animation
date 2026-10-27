@@ -1,22 +1,43 @@
 {
   "name": "dsh-boot-animation",
   "version": "1.0.0",
-  "description": "DeepSeek Harness 启动全屏视频动画插件（纯净全屏无遮挡、25秒时长限制、完播平滑转场）",
+  "description": "DeepSeek Harness 启动全屏视频动画插件（纯净全屏无遮挡、25秒时长限制、完播平滑转场、设置面板）",
   "type": "module",
   "main": "./entry.js",
   "exports": {
     ".": "./entry.js",
+    "./client": {
+      "default": "./lib/client.js"
+    },
     "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
   },
   "files": [
     "assets",
+    "lib",
     "src",
     "cordis.patch.yml",
     "entry.js",
     "package.json",
     "README.md"
   ],
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/schemastery": "*"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "^3.18.5"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
   "keywords": [
     "deepseek",
     "deepseek-harness",
@@ -24,11 +45,6 @@
     "dsh-plugin",
     "boot-animation"
   ],
-  "dsh": {
-    "bundle": {
-      "patch": "./cordis.patch.yml"
-    }
-  },
-  "author": "",
+  "author": "i-WZX",
   "license": "MIT"
 }
